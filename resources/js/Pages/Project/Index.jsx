@@ -7,9 +7,13 @@ import {
 } from "@/constants.jsx";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, router } from "@inertiajs/react";
+import { useEffect, useState } from "react";
 
-export default function Index({ auth, projects, queryParams = null }) {
+export default function Index({ auth, projects, queryParams = null, success }) {
   queryParams = queryParams || {};
+
+  const [successMessage, setSuccessMessage] = useState(success);
+
   const searchFieldChanged = (name, value) => {
     if (value) {
       queryParams[name] = value;
@@ -40,24 +44,52 @@ export default function Index({ auth, projects, queryParams = null }) {
     router.get(route("project.index"), queryParams);
   };
 
+  const deleteProject = (project) => {
+    if (!window.confirm("Are you sure you want to delete the project?")) {
+      return;
+    }
+    router.delete(route("project.destroy", project.id));
+    console.log(successMessage);
+  };
+
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setSuccessMessage(null);
+  //   }, 2000);
+  // }, [successMessage]);
+
   return (
     <AuthenticatedLayout
       user={auth.user}
       header={
-        <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-          Projects
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+            Projects
+          </h2>
+
+          <Link
+            href={route("project.create")}
+            className="px-3 py-1 text-white transition-all rounded shadow bg-emerald-500 hover:bg-emerald-600"
+          >
+            Add New
+          </Link>
+        </div>
       }
     >
       <Head title="Projects" />
 
-      <div className="py-12">
+      <div className="relative py-12">
+        {successMessage && (
+          <div className="absolute px-4 py-2 text-white rounded shadow top-1 right-1 bg-emerald-500">
+            {successMessage}
+          </div>
+        )}
         <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
             <div className="p-6 text-gray-900 dark:text-gray-100">
               <div className="overflow-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                  <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 border-b-2 border-gray-500">
+                <table className="w-full text-sm text-left text-gray-500 rtl:text-right dark:text-gray-400">
+                  <thead className="text-xs text-gray-700 uppercase border-b-2 border-gray-500 bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr className="text-nowrap">
                       <th className="px-3 py-2"></th>
                       <th className="px-3 py-2"></th>
@@ -92,7 +124,7 @@ export default function Index({ auth, projects, queryParams = null }) {
                       <th className="px-3 py-2"></th>
                     </tr>
                   </thead>
-                  <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 border-b-2 border-gray-500">
+                  <thead className="text-xs text-gray-700 uppercase border-b-2 border-gray-500 bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr className="text-nowrap">
                       <th
                         onClick={(e) => sortChanged("id")}
@@ -164,7 +196,7 @@ export default function Index({ auth, projects, queryParams = null }) {
                         <td className="px-3 py-2">
                           <img src={project.image_path} style={{ width: 60 }} />
                         </td>
-                        <th className="px-3 py-3 text-white text-nowrap hover:underline  ">
+                        <th className="px-3 py-3 text-white text-nowrap hover:underline ">
                           <Link href={route("project.show", project.id)}>
                             {project.name}
                           </Link>
@@ -186,19 +218,19 @@ export default function Index({ auth, projects, queryParams = null }) {
                           {project.due_date}
                         </td>
                         <td className="px-3 py-3">{project.createdBy.name}</td>
-                        <td className="px-3 py-3 text-right">
+                        <td className="flex px-3 py-3 text-right">
                           <Link
                             href={route("project.edit", project.id)}
-                            className="font-medium text-blue-600 dark:text-blue-500 hover:underline mx-1"
+                            className="mx-1 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                           >
                             Edit
                           </Link>
-                          <Link
-                            href={route("project.destroy", project.id)}
-                            className="font-medium text-red-600 dark:text-red-500 hover:underline mx-1"
+                          <button
+                            onClick={(e) => deleteProject(project)}
+                            className="mx-1 font-medium text-red-600 dark:text-red-500 hover:underline"
                           >
                             Delete
-                          </Link>
+                          </button>
                         </td>
                       </tr>
                     ))}
