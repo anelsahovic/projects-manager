@@ -119,9 +119,9 @@ class ProjectController extends Controller
                 Storage::disk('')->deleteDirectory(dirname($project->image_path));
             }
             $data['image_path'] = $image->store('project/' . Str::random(), 'public');
-            unset($data['image']);
-        }
 
+        }
+        unset($data['image']);
         $project->update($data);
 
         return to_route('project.index')->with('success', 'Project updated successfuly.');

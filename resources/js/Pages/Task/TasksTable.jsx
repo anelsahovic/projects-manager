@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Pagination from "@/Components/Pagination";
 import SelectInput from "@/Components/SelectInput";
 import TextInput from "@/Components/TextInput";
@@ -14,7 +14,9 @@ export default function TasksTable({
   tasks,
   queryParams = null,
   hideProjectColumn = false,
+  success,
 }) {
+  const [successMessage, setSuccessMessage] = useState(success);
   queryParams = queryParams || {};
   const searchFieldChanged = (name, value) => {
     if (value) {
@@ -45,11 +47,23 @@ export default function TasksTable({
     }
     router.get(route("task.index"), queryParams);
   };
+
+  const deleteTask = (task) => {
+    if (!window.confirm("Are you sure you want to delete the task?")) {
+      return;
+    }
+    router.delete(route("task.destroy", task.id));
+  };
   return (
     <>
+      {successMessage && (
+        <div className="absolute px-4 py-2 text-white rounded shadow top-1 right-1 bg-emerald-500">
+          {successMessage}
+        </div>
+      )}
       <div className="overflow-auto">
-        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 border-b-2 border-gray-500">
+        <table className="w-full text-sm text-left text-gray-500 rtl:text-right dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase border-b-2 border-gray-500 bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr className="text-nowrap">
               <th className="px-3 py-2"></th>
               <th className="px-3 py-2"></th>
@@ -85,7 +99,7 @@ export default function TasksTable({
               <th className="px-3 py-2"></th>
             </tr>
           </thead>
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 border-b-2 border-gray-500">
+          <thead className="text-xs text-gray-700 uppercase border-b-2 border-gray-500 bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr className="text-nowrap">
               <th
                 onClick={(e) => sortChanged("id")}
@@ -112,7 +126,7 @@ export default function TasksTable({
                     : " text-gray-400")
                 }
               >
-                Name
+                Task Name
               </th>
               <th
                 onClick={(e) => sortChanged("status")}
@@ -175,7 +189,9 @@ export default function TasksTable({
                 {!hideProjectColumn && (
                   <td className="px-3 py-3 text-nowrap">{task.project.name}</td>
                 )}
-                <td className="px-3 py-3 text-nowrap">{task.name}</td>
+                <td className="px-3 py-3 text-white text-nowrap hover:underline">
+                  <Link href={route("task.show", task.id)}>{task.name}</Link>
+                </td>
                 <td className="px-3 py-3 text-center">
                   <span
                     className={
@@ -199,19 +215,19 @@ export default function TasksTable({
                 <td className="px-3 py-3 text-nowrap">{task.created_at}</td>
                 <td className="px-3 py-3 text-nowrap">{task.due_date}</td>
                 <td className="px-3 py-3">{task.createdBy.name}</td>
-                <td className="px-3 py-3 text-right">
+                <td className="flex px-3 py-3 text-right">
                   <Link
                     href={route("task.edit", task.id)}
-                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline mx-1"
+                    className="mx-1 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                   >
                     Edit
                   </Link>
-                  <Link
-                    href={route("task.destroy", task.id)}
-                    className="font-medium text-red-600 dark:text-red-500 hover:underline mx-1"
+                  <button
+                    onClick={(e) => deleteTask(task)}
+                    className="mx-1 font-medium text-red-600 dark:text-red-500 hover:underline"
                   >
                     Delete
-                  </Link>
+                  </button>
                 </td>
               </tr>
             ))}
